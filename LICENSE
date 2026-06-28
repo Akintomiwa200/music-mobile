@@ -1,6 +1,6 @@
-The MIT License (MIT)
+MIT License
 
-Copyright (c) 2015-present 650 Industries, Inc. (aka Expo)
+Copyright (c) 2026 music-mobile contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +19,20 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+DISCLAIMER
+
+This project is an unofficial, educational music streaming UI built for learning
+purposes. It is not affiliated with, endorsed by, or connected to Spotify AB.
+
+"Spotify" and related marks are trademarks of Spotify AB. All other trademarks,
+service marks, and trade names are the property of their respective owners.
+
+This software does not include Spotify proprietary services, branding assets, or
+licensed music content unless you separately configure and authorize third-party
+API access under your own account and applicable terms of service.
+
+Use this project responsibly and comply with all applicable laws, platform
+policies, and third-party API terms when connecting to external music services.

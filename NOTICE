@@ -1,0 +1,15 @@
+music-mobile — Unofficial Spotify-style UI (Expo + React Native)
+
+This project is not affiliated with Spotify AB.
+
+Third-party libraries included in this project are subject to their own licenses.
+See each dependency's license in node_modules or upstream repository.
+
+Spotify® is a registered trademark of Spotify AB.
+
+Music metadata, playback, and API access (if configured) are governed by the
+terms of the third-party services you connect (for example, Spotify Web API
+terms of use).
+
+For project licensing, see LICENSE.
+For community standards, see CODE_OF_CONDUCT.md.
