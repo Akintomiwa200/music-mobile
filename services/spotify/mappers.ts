@@ -1,5 +1,5 @@
 import type { Album, Artist, LibraryItem, Playlist, Song } from "../../types";
-import type { SpotifyAlbum, SpotifyArtist, SpotifyPlaylist, SpotifyTrack } from "./types";
+import type { SpotifyAlbum, SpotifyArtist, SpotifyPlaylist, SpotifyShow, SpotifyTrack } from "./types";
 
 function bestImage(images: { url: string }[] | undefined, fallback = ""): string {
   return images?.[0]?.url ?? fallback;
@@ -91,5 +91,15 @@ export function mapArtistToLibraryItem(artist: SpotifyArtist): LibraryItem {
     subtitle: "Artist",
     image: bestImage(artist.images),
     type: "artist",
+  };
+}
+
+export function mapShowToLibraryItem(show: SpotifyShow): LibraryItem {
+  return {
+    id: show.id,
+    title: show.name,
+    subtitle: `Podcast • ${show.publisher}`,
+    image: bestImage(show.images),
+    type: "podcast",
   };
 }

@@ -8,7 +8,7 @@ import { MadeForYouCard } from "../../components/onviza/MadeForYouCard";
 import { FavoriteArtistCard } from "../../components/onviza/FavoriteArtistCard";
 import { TrendingRow } from "../../components/onviza/TrendingRow";
 import { SpotifyConnectBanner, SpotifyLoading } from "../../components/spotify/SpotifyConnectBanner";
-import { artists as mockArtists, songs as mockSongs } from "../../constants/data";
+import { SpotifyAuthRequired } from "../../components/spotify/SpotifyAuthRequired";
 import { useSpotify } from "../../context/SpotifyContext";
 import { useTabScreenPadding } from "../../hooks/useTabScreenPadding";
 import { GENRE_FILTERS } from "../../lib/theme";
@@ -16,24 +16,28 @@ import type { Artist, Song } from "../../types";
 
 export default function HomeScreen() {
   const bottomPad = useTabScreenPadding();
-  const { isAuthenticated, getHomeFeed } = useSpotify();
+  const { isAuthenticated, isLoading, getHomeFeed } = useSpotify();
   const [filter, setFilter] = useState<string>("All");
   const [madeForYou, setMadeForYou] = useState<Song[]>([]);
   const [favoriteArtists, setFavoriteArtists] = useState<Artist[]>([]);
   const [trending, setTrending] = useState<Song[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) {
-      setMadeForYou(mockSongs.slice(0, 10));
-      setFavoriteArtists(mockArtists);
-      setTrending(mockSongs.slice(0, 8));
+      setMadeForYou([]);
+      setFavoriteArtists([]);
+      setTrending([]);
+      setError(null);
       return;
     }
 
     let cancelled = false;
     setLoading(true);
-    getHomeFeed()
+    setError(null);
+
+    getHomeFeed(filter)
       .then((feed) => {
         if (!cancelled) {
           setMadeForYou(feed.madeForYou);
@@ -41,11 +45,12 @@ export default function HomeScreen() {
           setTrending(feed.trending);
         }
       })
-      .catch(() => {
+      .catch((e) => {
         if (!cancelled) {
-          setMadeForYou(mockSongs.slice(0, 10));
-          setFavoriteArtists(mockArtists);
-          setTrending(mockSongs.slice(0, 8));
+          setMadeForYou([]);
+          setFavoriteArtists([]);
+          setTrending([]);
+          setError(e instanceof Error ? e.message : "Failed to load feed");
         }
       })
       .finally(() => {
@@ -55,7 +60,9 @@ export default function HomeScreen() {
     return () => {
       cancelled = true;
     };
-  }, [isAuthenticated, getHomeFeed]);
+  }, [isAuthenticated, filter, getHomeFeed]);
+
+  const hasContent = madeForYou.length + favoriteArtists.length + trending.length > 0;
 
   return (
     <SafeAreaView className="flex-1 bg-onviza-bg" edges={["top"]}>
@@ -63,52 +70,70 @@ export default function HomeScreen() {
         <OnvizaHeader />
         <SpotifyConnectBanner compact={!isAuthenticated} />
 
-        <FilterChips filters={[...GENRE_FILTERS]} active={filter} onChange={setFilter} accentColor="#9333EA" />
+        {isAuthenticated && (
+          <FilterChips filters={[...GENRE_FILTERS]} active={filter} onChange={setFilter} accentColor="#9333EA" />
+        )}
 
-        {loading ? (
+        {isLoading ? (
           <SpotifyLoading />
+        ) : !isAuthenticated ? (
+          <SpotifyAuthRequired
+            title="Your music, live from Spotify"
+            message="Connect your account to see personalized recommendations, top artists, and trending tracks."
+            compact
+          />
+        ) : loading ? (
+          <SpotifyLoading />
+        ) : error ? (
+          <SpotifyAuthRequired title="Couldn't load your feed" message={error} compact />
+        ) : !hasContent ? (
+          <SpotifyAuthRequired
+            title="No recommendations yet"
+            message="Listen to more music on Spotify and your personalized feed will appear here."
+            compact
+          />
         ) : (
           <>
-            <View className="mt-4">
-              <SectionHeader
-                title="Made for You"
-                onSeeAll={() => router.push("/(tabs)/search")}
-              />
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 20, paddingRight: 28 }}
-              >
-                {madeForYou.map((song) => (
-                  <MadeForYouCard key={song.id} song={song} queue={madeForYou} />
-                ))}
-              </ScrollView>
-            </View>
-
-            <View className="mt-8">
-              <SectionHeader
-                title="Favourite Artists"
-                onSeeAll={() => router.push("/(tabs)/library")}
-              />
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 20, paddingRight: 28 }}
-              >
-                {favoriteArtists.map((artist) => (
-                  <FavoriteArtistCard key={artist.id} artist={artist} />
-                ))}
-              </ScrollView>
-            </View>
-
-            <View className="mt-8">
-              <SectionHeader title="Trending Now" />
-              <View className="px-5">
-                {trending.map((song, index) => (
-                  <TrendingRow key={song.id} song={song} queue={trending} isLast={index === trending.length - 1} />
-                ))}
+            {madeForYou.length > 0 && (
+              <View className="mt-4">
+                <SectionHeader title="Made for You" onSeeAll={() => router.push("/(tabs)/search")} />
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 20, paddingRight: 28 }}
+                >
+                  {madeForYou.map((song) => (
+                    <MadeForYouCard key={song.id} song={song} queue={madeForYou} />
+                  ))}
+                </ScrollView>
               </View>
-            </View>
+            )}
+
+            {favoriteArtists.length > 0 && (
+              <View className="mt-8">
+                <SectionHeader title="Favourite Artists" onSeeAll={() => router.push("/(tabs)/library")} />
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 20, paddingRight: 28 }}
+                >
+                  {favoriteArtists.map((artist) => (
+                    <FavoriteArtistCard key={artist.id} artist={artist} />
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {trending.length > 0 && (
+              <View className="mt-8">
+                <SectionHeader title="Trending Now" />
+                <View className="px-5">
+                  {trending.map((song, index) => (
+                    <TrendingRow key={song.id} song={song} queue={trending} isLast={index === trending.length - 1} />
+                  ))}
+                </View>
+              </View>
+            )}
           </>
         )}
       </ScrollView>

@@ -4,8 +4,8 @@ import { Image } from "expo-image";
 import { ScrollView, Text, View, Pressable, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { getAlbum as getMockAlbum } from "../../constants/data";
 import { SongRow } from "../../components/SongRow";
+import { SpotifyAuthRequired } from "../../components/spotify/SpotifyAuthRequired";
 import { usePlayer } from "../../context/PlayerContext";
 import { useSpotify } from "../../context/SpotifyContext";
 import { ONVIZA } from "../../lib/theme";
@@ -13,40 +13,76 @@ import type { Album } from "../../types";
 
 export default function AlbumScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { isAuthenticated, getAlbum } = useSpotify();
+  const { isAuthenticated, isLoading: authLoading, getAlbum } = useSpotify();
   const [album, setAlbum] = useState<Album | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { playQueue, isPlaying, currentSong, togglePlay } = usePlayer();
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      try {
-        if (isAuthenticated) {
-          const data = await getAlbum(id!);
-          if (!cancelled) setAlbum(data);
-        } else {
-          if (!cancelled) setAlbum(getMockAlbum(id!) ?? null);
-        }
-      } catch {
-        if (!cancelled) setAlbum(getMockAlbum(id!) ?? null);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+    if (!isAuthenticated || !id) {
+      setAlbum(null);
+      setError(null);
+      return;
     }
 
-    load();
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    getAlbum(id)
+      .then((data) => {
+        if (!cancelled) setAlbum(data);
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          setAlbum(null);
+          setError(e instanceof Error ? e.message : "Failed to load album");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
     return () => {
       cancelled = true;
     };
   }, [id, isAuthenticated, getAlbum]);
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <View className="flex-1 items-center justify-center bg-onviza-bg">
         <ActivityIndicator color={ONVIZA.purpleLight} />
+      </View>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <View className="flex-1 bg-onviza-bg">
+        <SafeAreaView edges={["top"]}>
+          <View className="px-4 py-3">
+            <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-full bg-onviza-card">
+              <Ionicons name="chevron-back" size={24} color="#fff" />
+            </Pressable>
+          </View>
+        </SafeAreaView>
+        <SpotifyAuthRequired title="Album details" message="Connect Spotify to browse albums and play tracks." />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View className="flex-1 bg-onviza-bg">
+        <SafeAreaView edges={["top"]}>
+          <View className="px-4 py-3">
+            <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-full bg-onviza-card">
+              <Ionicons name="chevron-back" size={24} color="#fff" />
+            </Pressable>
+          </View>
+        </SafeAreaView>
+        <SpotifyAuthRequired title="Couldn't load album" message={error} compact />
       </View>
     );
   }
@@ -88,7 +124,7 @@ export default function AlbumScreen() {
             <Pressable
               onPress={() => {
                 if (isThisPlaying) togglePlay();
-                else playQueue(album.songs, 0);
+                else if (album.songs.length > 0) playQueue(album.songs, 0);
               }}
               style={{
                 width: 64,

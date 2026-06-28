@@ -2,6 +2,7 @@ import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { SpotifyIcon } from "../../components/spotify/SpotifyIcon";
+import { useSettings } from "../../context/SettingsContext";
 import { useSpotify } from "../../context/SpotifyContext";
 import { SettingRow, SettingSection, SettingsHeader } from "../../components/settings/SettingRow";
 import { getRedirectUri } from "../../services/spotify/auth";
@@ -31,7 +32,7 @@ export default function AccountSettingsScreen() {
   };
 
   const handleDisconnect = () => {
-    Alert.alert("Disconnect Spotify?", "You will see demo data until you connect again.", [
+    Alert.alert("Disconnect Spotify?", "You will need to sign in again to browse music and your library.", [
       { text: "Cancel", style: "cancel" },
       { text: "Disconnect", style: "destructive", onPress: () => logout() },
     ]);

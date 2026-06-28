@@ -1,16 +1,46 @@
-import { useState } from "react";
-import { ScrollView, TextInput, View, Text, Pressable } from "react-native";
+import { useEffect, useState } from "react";
+import { ScrollView, TextInput, View, Text, Pressable, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SearchCategoryCard } from "../../components/FilterChips";
-import { searchCategories } from "../../constants/data";
+import { SpotifyConnectBanner } from "../../components/spotify/SpotifyConnectBanner";
+import { SpotifyAuthRequired } from "../../components/spotify/SpotifyAuthRequired";
+import { useSpotify } from "../../context/SpotifyContext";
 import { APP_NAME, ONVIZA } from "../../lib/theme";
 import { useTabScreenPadding } from "../../hooks/useTabScreenPadding";
+import type { SearchCategory } from "../../types";
 
 export default function SearchScreen() {
   const bottomPad = useTabScreenPadding();
+  const { isAuthenticated, isLoading, getBrowseCategories } = useSpotify();
   const [query, setQuery] = useState("");
+  const [categories, setCategories] = useState<SearchCategory[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setCategories([]);
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingCategories(true);
+    getBrowseCategories()
+      .then((data) => {
+        if (!cancelled) setCategories(data);
+      })
+      .catch(() => {
+        if (!cancelled) setCategories([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingCategories(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, getBrowseCategories]);
 
   const handleSubmit = () => {
     if (query.trim()) {
@@ -39,6 +69,7 @@ export default function SearchScreen() {
             placeholderTextColor={ONVIZA.textDim}
             returnKeyType="search"
             className="ml-3 flex-1 text-base text-white"
+            editable={isAuthenticated}
           />
           {query.length > 0 && (
             <Pressable onPress={() => setQuery("")}>
@@ -48,19 +79,37 @@ export default function SearchScreen() {
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, paddingBottom: bottomPad }}>
-        <Text className="mb-4 text-sm font-bold uppercase tracking-wider text-spotify-text-secondary">Browse all</Text>
-        <View className="flex-row flex-wrap justify-between gap-y-3">
-          {searchCategories.map((cat) => (
-            <SearchCategoryCard
-              key={cat.id}
-              title={cat.title}
-              color={cat.color}
-              onPress={() => router.push({ pathname: "/search-results", params: { q: cat.title } })}
-            />
-          ))}
+      {!isAuthenticated && !isLoading && <SpotifyConnectBanner compact />}
+
+      {isLoading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator color={ONVIZA.purpleLight} />
         </View>
-      </ScrollView>
+      ) : !isAuthenticated ? (
+        <SpotifyAuthRequired
+          title="Search Spotify"
+          message="Connect your account to search millions of songs, albums, artists, and podcasts."
+          compact
+        />
+      ) : (
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, paddingBottom: bottomPad }}>
+          <Text className="mb-4 text-sm font-bold uppercase tracking-wider text-spotify-text-secondary">Browse all</Text>
+          {loadingCategories ? (
+            <ActivityIndicator color={ONVIZA.purpleLight} />
+          ) : (
+            <View className="flex-row flex-wrap justify-between gap-y-3">
+              {categories.map((cat) => (
+                <SearchCategoryCard
+                  key={cat.id}
+                  title={cat.title}
+                  color={cat.color}
+                  onPress={() => router.push({ pathname: "/search-results", params: { q: cat.title } })}
+                />
+              ))}
+            </View>
+          )}
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }

@@ -4,18 +4,24 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSettings } from "../../context/SettingsContext";
+import { useSpotify } from "../../context/SpotifyContext";
+import { LIKED_SONGS_ID } from "../../lib/spotify-constants";
 import { ONVIZA } from "../../lib/theme";
 import { useTabScreenPadding } from "../../hooks/useTabScreenPadding";
 
 export default function ProfileScreen() {
   const bottomPad = useTabScreenPadding();
   const { settings } = useSettings();
+  const { isAuthenticated, user } = useSpotify();
+
+  const displayName = isAuthenticated && user?.display_name ? user.display_name : settings.displayName;
+  const avatarUri = isAuthenticated && user?.images?.[0]?.url ? user.images[0].url : settings.avatarUri;
 
   const links = [
     { icon: "person-outline" as const, label: "Edit profile", href: "/settings/profile" },
     { icon: "color-palette-outline" as const, label: "Personalization", href: "/settings/personalization" },
     { icon: "settings-outline" as const, label: "Settings", href: "/settings" },
-    { icon: "heart-outline" as const, label: "Liked songs", href: "/playlist/p7" },
+    { icon: "heart-outline" as const, label: "Liked songs", href: `/playlist/${LIKED_SONGS_ID}` },
   ];
 
   return (
@@ -23,10 +29,10 @@ export default function ProfileScreen() {
       <ScrollView contentContainerStyle={{ paddingBottom: bottomPad }}>
         <View style={styles.header}>
           <View style={styles.avatarRing}>
-            <Image source={{ uri: settings.avatarUri }} style={styles.avatar} contentFit="cover" />
+            <Image source={{ uri: avatarUri }} style={styles.avatar} contentFit="cover" />
           </View>
-          <Text style={styles.name}>{settings.displayName}</Text>
-          <Text style={styles.subtitle}>Onviza member</Text>
+          <Text style={styles.name}>{displayName}</Text>
+          <Text style={styles.subtitle}>{isAuthenticated ? "Spotify connected" : "Onviza member"}</Text>
         </View>
 
         <View style={styles.card}>

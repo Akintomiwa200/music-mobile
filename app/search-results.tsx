@@ -4,19 +4,20 @@ import { ScrollView, Text, View, Pressable, ActivityIndicator } from "react-nati
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { searchAll as mockSearch } from "../constants/data";
 import { SongRowCompact } from "../components/SongRow";
 import { getItemRoute } from "../lib/utils";
 import { useSpotify } from "../context/SpotifyContext";
 import { SpotifyConnectBanner } from "../components/spotify/SpotifyConnectBanner";
+import { SpotifyAuthRequired } from "../components/spotify/SpotifyAuthRequired";
 import { ONVIZA } from "../lib/theme";
 import type { Album, Artist, Playlist, Song } from "../types";
 
 export default function SearchResultsScreen() {
   const { q } = useLocalSearchParams<{ q: string }>();
   const query = q ?? "";
-  const { isAuthenticated, search } = useSpotify();
+  const { isAuthenticated, isLoading: authLoading, search } = useSpotify();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [songs, setSongs] = useState<Song[]>([]);
   const [albums, setAlbums] = useState<Album[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
@@ -26,16 +27,18 @@ export default function SearchResultsScreen() {
     if (!query.trim()) return;
 
     if (!isAuthenticated) {
-      const mock = mockSearch(query);
-      setSongs(mock.songs);
-      setAlbums(mock.albums);
-      setPlaylists(mock.playlists);
-      setArtists(mock.artists);
+      setSongs([]);
+      setAlbums([]);
+      setPlaylists([]);
+      setArtists([]);
+      setError(null);
       return;
     }
 
     let cancelled = false;
     setLoading(true);
+    setError(null);
+
     search(query)
       .then((results) => {
         if (!cancelled) {
@@ -45,13 +48,13 @@ export default function SearchResultsScreen() {
           setArtists(results.artists);
         }
       })
-      .catch(() => {
+      .catch((e) => {
         if (!cancelled) {
-          const mock = mockSearch(query);
-          setSongs(mock.songs);
-          setAlbums(mock.albums);
-          setPlaylists(mock.playlists);
-          setArtists(mock.artists);
+          setSongs([]);
+          setAlbums([]);
+          setPlaylists([]);
+          setArtists([]);
+          setError(e instanceof Error ? e.message : "Search failed");
         }
       })
       .finally(() => {
@@ -87,10 +90,14 @@ export default function SearchResultsScreen() {
 
       {!isAuthenticated && <SpotifyConnectBanner compact />}
 
-      {loading ? (
+      {authLoading || loading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color={ONVIZA.purpleLight} />
         </View>
+      ) : !isAuthenticated ? (
+        <SpotifyAuthRequired title="Search requires Spotify" message="Connect your account to search Spotify's catalog." />
+      ) : error ? (
+        <SpotifyAuthRequired title="Search failed" message={error} compact />
       ) : (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
           {!hasResults ? (
@@ -99,9 +106,7 @@ export default function SearchResultsScreen() {
                 <Ionicons name="search" size={40} color={ONVIZA.textDim} />
               </View>
               <Text className="mt-5 text-center text-xl font-bold text-white">No results for "{query}"</Text>
-              <Text className="mt-2 text-center text-spotify-text-secondary">
-                Check the spelling or connect Spotify for more results.
-              </Text>
+              <Text className="mt-2 text-center text-spotify-text-secondary">Try a different spelling or search term.</Text>
             </View>
           ) : (
             <>

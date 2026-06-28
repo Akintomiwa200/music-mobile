@@ -1,4 +1,5 @@
 import type { Album, Artist, LibraryItem, Playlist, Song } from "../../types";
+import { LIKED_SONGS_ID, YOUR_EPISODES_ID, HOME_GENRE_SEEDS } from "../../lib/spotify-constants";
 import {
   mapAlbum,
   mapAlbumToLibraryItem,
@@ -6,6 +7,7 @@ import {
   mapArtistToLibraryItem,
   mapPlaylist,
   mapPlaylistToLibraryItem,
+  mapShowToLibraryItem,
   mapTrack,
   mapTracks,
 } from "./mappers";
@@ -15,6 +17,7 @@ import type {
   SpotifyArtist,
   SpotifyPlaylist,
   SpotifySearchResult,
+  SpotifyShow,
   SpotifyTrack,
 } from "./types";
 
@@ -87,6 +90,76 @@ export async function fetchArtistAlbums(artistId: string): Promise<Album[]> {
   return items.items.map((a) => mapAlbum(a));
 }
 
+export async function fetchSavedTracks(limit = 50): Promise<Song[]> {
+  const data = await spotifyFetch<{ items: { track: SpotifyTrack | null }[] }>(`/me/tracks?limit=${limit}`);
+  return mapTracks(data.items.map((i) => i.track));
+}
+
+export async function fetchSavedTracksTotal(): Promise<number> {
+  const data = await spotifyFetch<{ total: number }>(`/me/tracks?limit=1`);
+  return data.total ?? 0;
+}
+
+export function buildLikedSongsItem(count: number): LibraryItem {
+  return {
+    id: LIKED_SONGS_ID,
+    title: "Liked Songs",
+    subtitle: `Playlist • ${count} ${count === 1 ? "song" : "songs"}`,
+    image: "",
+    type: "playlist",
+    pinned: true,
+    special: "liked-songs",
+  };
+}
+
+export async function fetchLikedSongsPlaylist(): Promise<Playlist> {
+  const trackItems = await spotifyFetchAllPages<{ track: SpotifyTrack | null }>(
+    `/me/tracks?limit=50`,
+    (p) => p.items,
+    10
+  );
+  const songs = mapTracks(trackItems.map((i) => i.track));
+  return {
+    id: LIKED_SONGS_ID,
+    title: "Liked Songs",
+    description: "Songs you've liked on Spotify",
+    image: songs[0]?.image ?? "",
+    owner: "You",
+    songCount: songs.length,
+    songs,
+  };
+}
+
+export async function fetchSavedShows(limit = 20): Promise<LibraryItem[]> {
+  try {
+    const data = await spotifyFetch<{ items: { show: SpotifyShow }[] }>(`/me/shows?limit=${limit}`);
+    return data.items.map((i) => mapShowToLibraryItem(i.show));
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchSavedEpisodesTotal(): Promise<number> {
+  try {
+    const data = await spotifyFetch<{ total: number }>(`/me/episodes?limit=1`);
+    return data.total ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+export function buildYourEpisodesItem(count: number): LibraryItem {
+  return {
+    id: YOUR_EPISODES_ID,
+    title: "Your Episodes",
+    subtitle: `Saved • ${count} ${count === 1 ? "episode" : "episodes"}`,
+    image: "",
+    type: "podcast",
+    pinned: true,
+    special: "your-episodes",
+  };
+}
+
 export async function fetchUserPlaylists(limit = 30): Promise<LibraryItem[]> {
   const data = await spotifyFetch<{ items: SpotifyPlaylist[] }>(`/me/playlists?limit=${limit}`);
   return data.items.map(mapPlaylistToLibraryItem);
@@ -105,12 +178,21 @@ export async function fetchFollowedArtists(limit = 20): Promise<LibraryItem[]> {
 }
 
 export async function fetchUserLibrary(): Promise<LibraryItem[]> {
-  const [playlists, albums, artists] = await Promise.all([
+  const [playlists, albums, artists, shows, likedCount, episodesCount] = await Promise.all([
     fetchUserPlaylists(25),
     fetchSavedAlbums(15),
     fetchFollowedArtists(15),
+    fetchSavedShows(15),
+    fetchSavedTracksTotal(),
+    fetchSavedEpisodesTotal(),
   ]);
-  return [...playlists, ...albums, ...artists];
+
+  const pinned: LibraryItem[] = [buildLikedSongsItem(likedCount)];
+  if (episodesCount > 0) {
+    pinned.push(buildYourEpisodesItem(episodesCount));
+  }
+
+  return [...pinned, ...playlists, ...albums, ...artists, ...shows];
 }
 
 export async function fetchTopTracks(limit = 20): Promise<Song[]> {
@@ -123,10 +205,16 @@ export async function fetchRecentlyPlayed(limit = 10): Promise<Song[]> {
   return mapTracks(data.items.map((i) => i.track));
 }
 
-export async function fetchRecommendations(seedTracks: string[] = [], limit = 8): Promise<Song[]> {
+export async function fetchRecommendations(
+  seedTracks: string[] = [],
+  limit = 8,
+  seedGenres: string[] = []
+): Promise<Song[]> {
   const params = new URLSearchParams({ limit: String(limit) });
   if (seedTracks.length > 0) {
     params.set("seed_tracks", seedTracks.slice(0, 5).join(","));
+  } else if (seedGenres.length > 0) {
+    params.set("seed_genres", seedGenres.slice(0, 5).join(","));
   } else {
     params.set("seed_genres", "pop,hip-hop,electronic");
   }
@@ -189,6 +277,20 @@ export async function fetchMadeForYouTracks(limit = 10): Promise<Song[]> {
   return fetchRecommendations([], limit);
 }
 
+export async function fetchBrowseCategories(limit = 12) {
+  const colors = ["#27856a", "#5038a0", "#509bf5", "#af2896", "#8d67ab", "#e8115b", "#148a08", "#e13300", "#8400e7", "#477d95", "#777777", "#1e3264"];
+
+  const data = await spotifyFetch<{ categories: { items: { id: string; name: string }[] } }>(
+    `/browse/categories?limit=${limit}&country=US`
+  );
+
+  return data.categories.items.map((c, i) => ({
+    id: c.id,
+    title: c.name,
+    color: colors[i % colors.length],
+  }));
+}
+
 export async function fetchHomeFeed() {
   const [madeForYou, favoriteArtists, topTracks, recentTracks] = await Promise.all([
     fetchMadeForYouTracks(10),
@@ -200,6 +302,30 @@ export async function fetchHomeFeed() {
   const trending = topTracks.length > 0 ? topTracks : recentTracks;
 
   return { madeForYou, favoriteArtists, trending };
+}
+
+export async function fetchHomeFeedByGenre(genre: string) {
+  if (!genre || genre === "All") {
+    return fetchHomeFeed();
+  }
+
+  const seed = HOME_GENRE_SEEDS[genre] ?? genre.toLowerCase().replace(/\s+/g, "-");
+  const searchQuery = `genre:${seed}`;
+
+  const [madeForYou, searchResults, topArtists] = await Promise.all([
+    fetchRecommendations([], 10, [seed]),
+    searchSpotify(searchQuery, 8),
+    searchSpotify(searchQuery, 10).then((r) => r.artists),
+  ]);
+
+  const favoriteArtists =
+    topArtists.length > 0 ? topArtists.slice(0, 10) : (await fetchTopArtists(10)).filter((a) => a.genres?.includes(seed));
+
+  return {
+    madeForYou,
+    favoriteArtists: favoriteArtists.length > 0 ? favoriteArtists : await fetchTopArtists(10),
+    trending: searchResults.songs.length > 0 ? searchResults.songs : madeForYou.slice(0, 8),
+  };
 }
 
 export function getSpotifyOpenUrl(song: Song) {

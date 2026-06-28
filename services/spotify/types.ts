@@ -55,6 +55,14 @@ export type SpotifyTokenResponse = {
   scope: string;
 };
 
+export type SpotifyShow = {
+  id: string;
+  name: string;
+  publisher: string;
+  images: SpotifyImage[];
+  description?: string;
+};
+
 export type SpotifyRecentlyPlayed = {
   items: { track: SpotifyTrack; played_at: string }[];
 };

@@ -1,8 +1,12 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { SPOTIFY_CLIENT_ID } from "../lib/config";
 import {
+  fetchBrowseCategories,
   fetchHomeFeed,
+  fetchHomeFeedByGenre,
   fetchUserLibrary,
+  fetchLikedSongsPlaylist,
+  fetchFeaturedPlaylists,
   getCurrentUser,
   searchSpotify,
   fetchPlaylist,
@@ -30,10 +34,13 @@ type SpotifyContextType = {
   logout: () => Promise<void>;
   search: (query: string) => ReturnType<typeof searchSpotify>;
   getPlaylist: (id: string) => Promise<Playlist | null>;
+  getLikedSongsPlaylist: () => Promise<Playlist>;
   getAlbum: (id: string) => Promise<Album | null>;
   getArtist: (id: string) => Promise<{ artist: Artist; topTracks: Song[]; albums: Album[] } | null>;
-  getHomeFeed: () => Promise<{ madeForYou: Song[]; favoriteArtists: Artist[]; trending: Song[] }>;
+  getHomeFeed: (genre?: string) => Promise<{ madeForYou: Song[]; favoriteArtists: Artist[]; trending: Song[] }>;
   getLibrary: () => Promise<LibraryItem[]>;
+  getFeaturedPlaylists: () => ReturnType<typeof fetchFeaturedPlaylists>;
+  getBrowseCategories: () => ReturnType<typeof fetchBrowseCategories>;
 };
 
 const SpotifyContext = createContext<SpotifyContextType | null>(null);
@@ -103,6 +110,7 @@ export function SpotifyProvider({ children }: { children: React.ReactNode }) {
       logout,
       search: searchSpotify,
       getPlaylist: fetchPlaylist,
+      getLikedSongsPlaylist: fetchLikedSongsPlaylist,
       getAlbum: fetchAlbum,
       getArtist: async (id) => {
         const [artist, topTracks, albums] = await Promise.all([
@@ -113,8 +121,11 @@ export function SpotifyProvider({ children }: { children: React.ReactNode }) {
         if (!artist) return null;
         return { artist, topTracks, albums };
       },
-      getHomeFeed: fetchHomeFeed,
+      getHomeFeed: (genre?: string) =>
+        genre && genre !== "All" ? fetchHomeFeedByGenre(genre) : fetchHomeFeed(),
       getLibrary: fetchUserLibrary,
+      getFeaturedPlaylists: fetchFeaturedPlaylists,
+      getBrowseCategories: fetchBrowseCategories,
     }),
     [isConfigured, isAuthenticated, isLoading, user, error, login, logout]
   );

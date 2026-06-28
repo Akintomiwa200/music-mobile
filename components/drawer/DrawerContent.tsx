@@ -1,13 +1,18 @@
+import { useEffect, useState } from "react";
 import { Image } from "expo-image";
 import { router, usePathname } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { libraryItems, playlists } from "../../constants/data";
 import { useDrawer } from "../../context/DrawerContext";
 import { usePlayer } from "../../context/PlayerContext";
 import { useSettings } from "../../context/SettingsContext";
+import { useSpotify } from "../../context/SpotifyContext";
+import { LIKED_SONGS_ID } from "../../lib/spotify-constants";
+import { ONVIZA } from "../../lib/theme";
 import { cn } from "../../lib/utils";
+import type { ForYouItem } from "../../services/spotify/api";
+import type { LibraryItem } from "../../types";
 
 type NavItem = {
   label: string;
@@ -54,18 +59,59 @@ export function DrawerContent() {
   const { close, persistent } = useDrawer();
   const { settings } = useSettings();
   const { queue, currentSong } = usePlayer();
+  const { isAuthenticated, getLibrary, getFeaturedPlaylists } = useSpotify();
+  const [userPlaylists, setUserPlaylists] = useState<LibraryItem[]>([]);
+  const [featuredPlaylists, setFeaturedPlaylists] = useState<ForYouItem[]>([]);
+  const [loadingPlaylists, setLoadingPlaylists] = useState(false);
 
-  const pinnedPlaylists = libraryItems.filter((i) => i.type === "playlist").slice(0, 6);
-  const browsePlaylists = playlists.slice(0, 4);
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setUserPlaylists([]);
+      setFeaturedPlaylists([]);
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingPlaylists(true);
+
+    Promise.all([getLibrary(), getFeaturedPlaylists(4)])
+      .then(([library, featured]) => {
+        if (cancelled) return;
+        setUserPlaylists(
+          library.filter((item) => item.type === "playlist" || item.special === "liked-songs").slice(0, 6)
+        );
+        setFeaturedPlaylists(featured);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setUserPlaylists([]);
+          setFeaturedPlaylists([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingPlaylists(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, getLibrary, getFeaturedPlaylists]);
 
   const navigate = (href: string) => {
     router.push(href as never);
     if (!persistent) close();
   };
 
+  const openLibraryItem = (item: LibraryItem) => {
+    if (item.special === "liked-songs" || item.id === LIKED_SONGS_ID) {
+      navigate(`/playlist/${LIKED_SONGS_ID}`);
+      return;
+    }
+    navigate(`/playlist/${item.id}`);
+  };
+
   return (
     <View className="flex-1 bg-black" style={{ paddingTop: insets.top }}>
-      {/* Profile */}
       <Pressable
         onPress={() => navigate("/settings/profile")}
         className="mx-3 mb-2 flex-row items-center gap-3 rounded-lg px-3 py-3 active:bg-spotify-highlight"
@@ -78,7 +124,6 @@ export function DrawerContent() {
       </Pressable>
 
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1 px-3">
-        {/* Main nav */}
         <View className="mb-2 px-1">
           {NAV_ITEMS.map((item) => {
             const active = item.match(pathname);
@@ -100,7 +145,6 @@ export function DrawerContent() {
           })}
         </View>
 
-        {/* Quick actions */}
         <View className="mb-4 border-t border-spotify-highlight pt-4">
           {QUICK_LINKS.map((item) => (
             <Pressable
@@ -119,7 +163,6 @@ export function DrawerContent() {
           ))}
         </View>
 
-        {/* Now playing chip */}
         {currentSong && (
           <Pressable
             onPress={() => navigate("/player")}
@@ -138,38 +181,61 @@ export function DrawerContent() {
           </Pressable>
         )}
 
-        {/* Library shortcuts */}
-        <Text className="mb-2 px-3 text-xs font-bold uppercase tracking-wider text-spotify-text-muted">
-          Your playlists
-        </Text>
-        {pinnedPlaylists.map((item) => (
-          <Pressable
-            key={item.id}
-            onPress={() => navigate(`/playlist/${item.id}`)}
-            className="mb-1 flex-row items-center gap-3 rounded-lg px-3 py-2 active:bg-spotify-highlight"
-          >
-            <Image source={{ uri: item.image }} className="h-8 w-8 rounded" contentFit="cover" />
-            <Text numberOfLines={1} className="flex-1 text-sm font-medium text-spotify-text-secondary">
-              {item.title}
+        {isAuthenticated && (
+          <>
+            <Text className="mb-2 px-3 text-xs font-bold uppercase tracking-wider text-spotify-text-muted">
+              Your playlists
             </Text>
-          </Pressable>
-        ))}
+            {loadingPlaylists ? (
+              <ActivityIndicator color={ONVIZA.purpleLight} style={{ marginVertical: 12 }} />
+            ) : userPlaylists.length > 0 ? (
+              userPlaylists.map((item) => (
+                <Pressable
+                  key={item.id}
+                  onPress={() => openLibraryItem(item)}
+                  className="mb-1 flex-row items-center gap-3 rounded-lg px-3 py-2 active:bg-spotify-highlight"
+                >
+                  {item.special === "liked-songs" ? (
+                    <View className="h-8 w-8 items-center justify-center rounded bg-onviza-purple">
+                      <Ionicons name="heart" size={16} color="#fff" />
+                    </View>
+                  ) : (
+                    <Image source={{ uri: item.image }} className="h-8 w-8 rounded" contentFit="cover" />
+                  )}
+                  <Text numberOfLines={1} className="flex-1 text-sm font-medium text-spotify-text-secondary">
+                    {item.title}
+                  </Text>
+                </Pressable>
+              ))
+            ) : (
+              <Text className="mb-4 px-3 text-sm text-spotify-text-muted">No playlists yet</Text>
+            )}
 
-        <Text className="mb-2 mt-4 px-3 text-xs font-bold uppercase tracking-wider text-spotify-text-muted">
-          Browse
-        </Text>
-        {browsePlaylists.map((p) => (
-          <Pressable
-            key={p.id}
-            onPress={() => navigate(`/playlist/${p.id}`)}
-            className="mb-1 flex-row items-center gap-3 rounded-lg px-3 py-2 active:bg-spotify-highlight"
-          >
-            <Image source={{ uri: p.image }} className="h-8 w-8 rounded" contentFit="cover" />
-            <Text numberOfLines={1} className="flex-1 text-sm font-medium text-spotify-text-secondary">
-              {p.title}
-            </Text>
-          </Pressable>
-        ))}
+            {featuredPlaylists.length > 0 && (
+              <>
+                <Text className="mb-2 mt-4 px-3 text-xs font-bold uppercase tracking-wider text-spotify-text-muted">
+                  Browse
+                </Text>
+                {featuredPlaylists.map((p) => (
+                  <Pressable
+                    key={p.id}
+                    onPress={() => navigate(`/playlist/${p.id}`)}
+                    className="mb-1 flex-row items-center gap-3 rounded-lg px-3 py-2 active:bg-spotify-highlight"
+                  >
+                    <Image source={{ uri: p.image }} className="h-8 w-8 rounded" contentFit="cover" />
+                    <Text numberOfLines={1} className="flex-1 text-sm font-medium text-spotify-text-secondary">
+                      {p.title}
+                    </Text>
+                  </Pressable>
+                ))}
+              </>
+            )}
+          </>
+        )}
+
+        {!isAuthenticated && (
+          <Text className="px-3 py-4 text-sm text-spotify-text-muted">Connect Spotify to see your playlists here.</Text>
+        )}
 
         <View className="h-8" />
       </ScrollView>

@@ -6,10 +6,11 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { FilterChips } from "../../components/FilterChips";
 import { LibraryRow } from "../../components/onviza/LibraryRow";
-import { libraryItems as mockLibrary } from "../../constants/data";
 import { useSettings } from "../../context/SettingsContext";
 import { useSpotify } from "../../context/SpotifyContext";
 import { SpotifyConnectBanner, SpotifyLoading } from "../../components/spotify/SpotifyConnectBanner";
+import { SpotifyAuthRequired } from "../../components/spotify/SpotifyAuthRequired";
+import { LIKED_SONGS_ID } from "../../lib/spotify-constants";
 import { ONVIZA } from "../../lib/theme";
 import { useTabScreenPadding } from "../../hooks/useTabScreenPadding";
 import type { LibraryItem } from "../../types";
@@ -33,11 +34,12 @@ const SORT_LABELS = {
 export default function LibraryScreen() {
   const bottomPad = useTabScreenPadding();
   const { settings } = useSettings();
-  const { isAuthenticated, getLibrary } = useSpotify();
+  const { isAuthenticated, isLoading, getLibrary } = useSpotify();
   const [filter, setFilter] = useState<FilterKey>("Playlists");
   const [gridView, setGridView] = useState(false);
-  const [items, setItems] = useState<LibraryItem[]>(mockLibrary);
+  const [items, setItems] = useState<LibraryItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const defaults: Record<string, FilterKey> = {
@@ -51,22 +53,24 @@ export default function LibraryScreen() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      setItems(mockLibrary);
+      setItems([]);
+      setError(null);
       return;
     }
 
     let cancelled = false;
     setLoading(true);
+    setError(null);
+
     getLibrary()
       .then((data) => {
-        if (!cancelled) {
-          const pinned = mockLibrary.filter((i) => i.pinned || i.special);
-          const merged = [...pinned, ...data.filter((d) => !pinned.some((p) => p.id === d.id))];
-          setItems(merged);
-        }
+        if (!cancelled) setItems(data);
       })
-      .catch(() => {
-        if (!cancelled) setItems(mockLibrary);
+      .catch((e) => {
+        if (!cancelled) {
+          setItems([]);
+          setError(e instanceof Error ? e.message : "Failed to load library");
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -104,8 +108,8 @@ export default function LibraryScreen() {
   const compact = settings.appearance.compactLibrary;
 
   const navigate = (item: LibraryItem) => {
-    if (item.special === "liked-songs" || item.id === "p7") {
-      router.push("/playlist/p7");
+    if (item.special === "liked-songs" || item.id === LIKED_SONGS_ID) {
+      router.push(`/playlist/${LIKED_SONGS_ID}`);
       return;
     }
     if (item.type === "playlist") router.push(`/playlist/${item.id}`);
@@ -120,7 +124,6 @@ export default function LibraryScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-onviza-bg" edges={["top"]}>
-      {/* Header: avatar + title + actions */}
       <View className="flex-row items-center px-4 pb-1 pt-3">
         <Pressable onPress={() => router.push("/(tabs)/profile")} className="mr-3">
           <Image source={{ uri: settings.avatarUri }} className="h-8 w-8 rounded-full" contentFit="cover" />
@@ -136,38 +139,49 @@ export default function LibraryScreen() {
 
       {!isAuthenticated && <SpotifyConnectBanner compact />}
 
-      <FilterChips
-        filters={FILTER_LABELS}
-        active={filter}
-        onChange={(f) => setFilter(f as FilterKey)}
-        accentColor={settings.accentColor}
-        contentClassName="px-4 py-3"
-      />
+      {isAuthenticated && (
+        <FilterChips
+          filters={FILTER_LABELS}
+          active={filter}
+          onChange={(f) => setFilter(f as FilterKey)}
+          accentColor={settings.accentColor}
+          contentClassName="px-4 py-3"
+        />
+      )}
 
-      <View className="flex-row items-center justify-between px-4 py-2">
-        <Pressable
-          onPress={() => router.push("/settings/library")}
-          className="flex-row items-center gap-2"
-        >
-          <Ionicons name="swap-vertical" size={18} color={ONVIZA.textMuted} />
-          <Text className="text-sm font-medium text-spotify-text-secondary">
-            {SORT_LABELS[settings.library.sortOrder]}
-          </Text>
-        </Pressable>
-        <Pressable onPress={() => setGridView((v) => !v)} hitSlop={8} className="p-1">
-          <Ionicons name={gridView ? "list" : "grid-outline"} size={20} color={ONVIZA.textMuted} />
-        </Pressable>
-      </View>
+      {isAuthenticated && (
+        <View className="flex-row items-center justify-between px-4 py-2">
+          <Pressable onPress={() => router.push("/settings/library")} className="flex-row items-center gap-2">
+            <Ionicons name="swap-vertical" size={18} color={ONVIZA.textMuted} />
+            <Text className="text-sm font-medium text-spotify-text-secondary">
+              {SORT_LABELS[settings.library.sortOrder]}
+            </Text>
+          </Pressable>
+          <Pressable onPress={() => setGridView((v) => !v)} hitSlop={8} className="p-1">
+            <Ionicons name={gridView ? "list" : "grid-outline"} size={20} color={ONVIZA.textMuted} />
+          </Pressable>
+        </View>
+      )}
 
-      {loading ? (
+      {isLoading ? (
+        <SpotifyLoading label="Checking Spotify connection…" />
+      ) : !isAuthenticated ? (
+        <SpotifyAuthRequired
+          title="Your Spotify library"
+          message="Connect to see your playlists, saved albums, followed artists, and podcasts."
+          compact
+        />
+      ) : loading ? (
         <SpotifyLoading label="Loading your library…" />
+      ) : error ? (
+        <SpotifyAuthRequired title="Couldn't load library" message={error} compact />
       ) : (
         <FlatList
           data={filtered}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: bottomPad }}
+          contentContainerStyle={{ paddingBottom: bottomPad, flexGrow: filtered.length === 0 ? 1 : undefined }}
           ListEmptyComponent={
             <Text className="px-4 py-8 text-center text-spotify-text-secondary">Nothing here yet</Text>
           }

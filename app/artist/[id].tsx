@@ -4,9 +4,9 @@ import { Image } from "expo-image";
 import { ScrollView, Text, View, Pressable, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { getArtist as getMockArtist, albums as mockAlbums, songs as mockSongs } from "../../constants/data";
 import { SongRow } from "../../components/SongRow";
 import { AlbumCard } from "../../components/Cards";
+import { SpotifyAuthRequired } from "../../components/spotify/SpotifyAuthRequired";
 import { usePlayer } from "../../context/PlayerContext";
 import { useSpotify } from "../../context/SpotifyContext";
 import { ONVIZA } from "../../lib/theme";
@@ -14,56 +14,91 @@ import type { Album, Artist, Song } from "../../types";
 
 export default function ArtistScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { isAuthenticated, getArtist } = useSpotify();
+  const { isAuthenticated, isLoading: authLoading, getArtist } = useSpotify();
   const [artist, setArtist] = useState<Artist | null>(null);
   const [artistSongs, setArtistSongs] = useState<Song[]>([]);
   const [artistAlbums, setArtistAlbums] = useState<Album[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { playQueue, isPlaying, currentSong, togglePlay } = usePlayer();
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      try {
-        if (isAuthenticated) {
-          const data = await getArtist(id!);
-          if (!cancelled && data) {
-            setArtist(data.artist);
-            setArtistSongs(data.topTracks);
-            setArtistAlbums(data.albums);
-          }
-        } else {
-          const mock = getMockArtist(id!);
-          if (!cancelled && mock) {
-            setArtist(mock);
-            setArtistSongs(mockSongs.filter((s) => s.artistId === mock.id));
-            setArtistAlbums(mockAlbums.filter((a) => a.artistId === mock.id));
-          }
-        }
-      } catch {
-        const mock = getMockArtist(id!);
-        if (!cancelled && mock) {
-          setArtist(mock);
-          setArtistSongs(mockSongs.filter((s) => s.artistId === mock.id));
-          setArtistAlbums(mockAlbums.filter((a) => a.artistId === mock.id));
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+    if (!isAuthenticated || !id) {
+      setArtist(null);
+      setArtistSongs([]);
+      setArtistAlbums([]);
+      setError(null);
+      return;
     }
 
-    load();
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    getArtist(id)
+      .then((data) => {
+        if (cancelled) return;
+        if (!data) {
+          setArtist(null);
+          setArtistSongs([]);
+          setArtistAlbums([]);
+          return;
+        }
+        setArtist(data.artist);
+        setArtistSongs(data.topTracks);
+        setArtistAlbums(data.albums);
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          setArtist(null);
+          setArtistSongs([]);
+          setArtistAlbums([]);
+          setError(e instanceof Error ? e.message : "Failed to load artist");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
     return () => {
       cancelled = true;
     };
   }, [id, isAuthenticated, getArtist]);
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <View className="flex-1 items-center justify-center bg-onviza-bg">
         <ActivityIndicator color={ONVIZA.purpleLight} />
+      </View>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <View className="flex-1 bg-onviza-bg">
+        <SafeAreaView edges={["top"]}>
+          <View className="px-4 py-3">
+            <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-full bg-onviza-card">
+              <Ionicons name="chevron-back" size={24} color="#fff" />
+            </Pressable>
+          </View>
+        </SafeAreaView>
+        <SpotifyAuthRequired title="Artist details" message="Connect Spotify to view artist profiles, top tracks, and albums." />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View className="flex-1 bg-onviza-bg">
+        <SafeAreaView edges={["top"]}>
+          <View className="px-4 py-3">
+            <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-full bg-onviza-card">
+              <Ionicons name="chevron-back" size={24} color="#fff" />
+            </Pressable>
+          </View>
+        </SafeAreaView>
+        <SpotifyAuthRequired title="Couldn't load artist" message={error} compact />
       </View>
     );
   }
@@ -126,7 +161,7 @@ export default function ArtistScreen() {
             <Pressable
               onPress={() => {
                 if (isThisPlaying) togglePlay();
-                else playQueue(artistSongs, 0);
+                else if (artistSongs.length > 0) playQueue(artistSongs, 0);
               }}
               style={{
                 width: 64,
@@ -152,12 +187,16 @@ export default function ArtistScreen() {
           </View>
         </View>
 
-        <Text className="mb-2 mt-8 px-5 text-lg font-bold text-white">Popular</Text>
-        <View className="px-1">
-          {artistSongs.slice(0, 10).map((song, i) => (
-            <SongRow key={song.id} song={song} index={i} queue={artistSongs} showImage />
-          ))}
-        </View>
+        {artistSongs.length > 0 && (
+          <>
+            <Text className="mb-2 mt-8 px-5 text-lg font-bold text-white">Popular</Text>
+            <View className="px-1">
+              {artistSongs.slice(0, 10).map((song, i) => (
+                <SongRow key={song.id} song={song} index={i} queue={artistSongs} showImage />
+              ))}
+            </View>
+          </>
+        )}
 
         {artistAlbums.length > 0 && (
           <>
