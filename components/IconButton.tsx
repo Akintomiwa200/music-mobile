@@ -17,7 +17,7 @@ export function IconButton({ name, size = 24, color = "#fff", onPress, className
       onPress={onPress}
       className={cn("items-center justify-center rounded-full p-2 active:opacity-60", className)}
     >
-      <Ionicons name={name} size={size} color={active ? "#1DB954" : color} />
+      <Ionicons name={name} size={size} color={active ? "#9333EA" : color} />
     </Pressable>
   );
 }
@@ -26,10 +26,10 @@ export function PlayButton({ size = 56, onPress, playing }: { size?: number; onP
   return (
     <Pressable
       onPress={onPress}
-      className="items-center justify-center rounded-full bg-spotify-green active:scale-95"
-      style={{ width: size, height: size }}
+      className="items-center justify-center rounded-full active:scale-95"
+      style={{ width: size, height: size, backgroundColor: "#9333EA" }}
     >
-      <Ionicons name={playing ? "pause" : "play"} size={size * 0.45} color="#000" style={{ marginLeft: playing ? 0 : 3 }} />
+      <Ionicons name={playing ? "pause" : "play"} size={size * 0.45} color="#fff" style={{ marginLeft: playing ? 0 : 3 }} />
     </Pressable>
   );
 }

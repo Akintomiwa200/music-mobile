@@ -3,9 +3,9 @@ export const SPOTIFY_CLIENT_ID = process.env.EXPO_PUBLIC_SPOTIFY_CLIENT_ID ?? ""
 export const SPOTIFY_SCOPES = [
   "user-read-private",
   "user-read-email",
+  "user-library-read",
   "playlist-read-private",
   "playlist-read-collaborative",
-  "user-library-read",
   "user-read-recently-played",
   "user-top-read",
   "user-follow-read",

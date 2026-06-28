@@ -23,6 +23,20 @@ pnpm install
 pnpm start
 ```
 
+## Spotify integration
+
+Connect your real Spotify account for live data:
+
+1. Create an app at [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+2. Copy `.env.example` → `.env` and set `EXPO_PUBLIC_SPOTIFY_CLIENT_ID`
+3. Add redirect URI: `spotify://redirect`
+4. Restart with `pnpm start -- --clear`
+5. Tap **Connect Spotify** on Home or go to **Settings → Account**
+
+**Playback:** Uses Spotify's 30-second preview URLs where available. Tracks without previews open in the Spotify app. Full in-app streaming requires Spotify Premium + native SDK (not included).
+
+**Lyrics:** Fetched from LRCLIB when available.
+
 ## Scripts
 
 | Command        | Description              |

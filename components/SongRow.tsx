@@ -29,14 +29,14 @@ export function SongRow({ song, index, showImage = true, showAlbum = false, onPr
   return (
     <Pressable
       onPress={handlePress}
-      className="flex-row items-center px-4 py-2.5 active:bg-spotify-highlight/50"
+      className="flex-row items-center px-4 py-3 active:bg-white/5"
     >
       {index !== undefined && (
         <View className="mr-4 w-6 items-center">
           {isActive && isPlaying ? (
-            <Ionicons name="volume-medium" size={16} color="#1DB954" />
+            <Ionicons name="volume-medium" size={16} color="#A855F7" />
           ) : (
-            <Text className={`text-sm ${isActive ? "text-spotify-green" : "text-spotify-text-secondary"}`}>
+            <Text className={`text-sm ${isActive ? "text-onviza-purple-light" : "text-spotify-text-secondary"}`}>
               {index + 1}
             </Text>
           )}
@@ -49,7 +49,7 @@ export function SongRow({ song, index, showImage = true, showAlbum = false, onPr
         <View className="flex-row items-center">
           <Text
             numberOfLines={1}
-            className={`text-base font-medium ${isActive ? "text-spotify-green" : "text-spotify-text-primary"}`}
+            className={`text-base font-medium ${isActive ? "text-onviza-purple-light" : "text-spotify-text-primary"}`}
           >
             {song.title}
           </Text>

@@ -23,7 +23,7 @@ export default function AppearanceSettingsScreen() {
   const { appearance } = settings;
 
   return (
-    <SafeAreaView className="flex-1 bg-spotify-base" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-onviza-bg" edges={["top"]}>
       <SettingsHeader title="Appearance" onBack={() => router.back()} />
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
@@ -52,7 +52,7 @@ export default function AppearanceSettingsScreen() {
         <SettingSection title="Now playing canvas">
           {CANVAS_STYLES.map((style, i) => (
             <View key={style.id}>
-              {i > 0 && <View className="h-px bg-spotify-base" />}
+              {i > 0 && <View className="h-px bg-onviza-border" />}
               <Pressable
                 onPress={() => updateAppearance({ canvasStyle: style.id })}
                 className="flex-row items-center px-4 py-4 active:bg-spotify-highlight/50"
@@ -72,7 +72,7 @@ export default function AppearanceSettingsScreen() {
         <SettingSection title="Language">
           {LANGUAGES.map((lang, i) => (
             <View key={lang.id}>
-              {i > 0 && <View className="h-px bg-spotify-base" />}
+              {i > 0 && <View className="h-px bg-onviza-border" />}
               <Pressable
                 onPress={() => updateAppearance({ language: lang.id })}
                 className="flex-row items-center px-4 py-4 active:bg-spotify-highlight/50"

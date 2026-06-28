@@ -79,7 +79,7 @@ export function DrawerContent() {
 
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1 px-3">
         {/* Main nav */}
-        <View className="mb-4">
+        <View className="mb-2 px-1">
           {NAV_ITEMS.map((item) => {
             const active = item.match(pathname);
             return (
@@ -87,12 +87,12 @@ export function DrawerContent() {
                 key={item.href}
                 onPress={() => navigate(item.href)}
                 className={cn(
-                  "mb-1 flex-row items-center gap-4 rounded-lg px-3 py-2.5 active:bg-spotify-highlight",
-                  active && "bg-spotify-highlight"
+                  "mb-0.5 flex-row items-center gap-4 rounded-lg px-3 py-3 active:bg-white/10",
+                  active && "bg-white/10"
                 )}
               >
-                <Ionicons name={active ? item.iconActive : item.icon} size={24} color={active ? "#fff" : "#B3B3B3"} />
-                <Text className={cn("text-base font-bold", active ? "text-spotify-text-primary" : "text-spotify-text-secondary")}>
+                <Ionicons name={active ? item.iconActive : item.icon} size={26} color={active ? "#fff" : "#B3B3B3"} />
+                <Text className={cn("text-[15px] font-bold", active ? "text-white" : "text-spotify-text-secondary")}>
                   {item.label}
                 </Text>
               </Pressable>

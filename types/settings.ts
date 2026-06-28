@@ -65,12 +65,11 @@ export type UserSettings = {
 };
 
 export const ACCENT_COLORS = [
-  { id: "green", label: "Spotify Green", value: "#1DB954" },
-  { id: "purple", label: "Purple", value: "#5038a0" },
-  { id: "blue", label: "Blue", value: "#509bf5" },
-  { id: "pink", label: "Pink", value: "#af2896" },
-  { id: "orange", label: "Orange", value: "#e13300" },
-  { id: "teal", label: "Teal", value: "#27856a" },
+  { id: "purple", label: "Onviza Purple", hex: "#9333EA" },
+  { id: "blue", label: "Blue", hex: "#509bf5" },
+  { id: "pink", label: "Pink", hex: "#af2896" },
+  { id: "orange", label: "Orange", hex: "#e13300" },
+  { id: "teal", label: "Teal", hex: "#27856a" },
 ] as const;
 
 export const GENRE_OPTIONS = [
@@ -96,7 +95,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   avatarUri: "https://picsum.photos/seed/profile/200/200",
   favoriteGenres: ["Pop", "Hip-Hop", "R&B"],
   defaultMood: "chill",
-  accentColor: "#1DB954",
+  accentColor: "#9333EA",
   homeSections: {
     jumpBackIn: true,
     madeForYou: true,

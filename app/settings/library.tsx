@@ -3,7 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useSettings } from "../../context/SettingsContext";
 import { SettingSection, SettingToggle, SettingsHeader } from "../../components/settings/SettingRow";
-import { cn } from "../../lib/utils";
+import { FilterChip } from "../../components/FilterChips";
 import type { LibrarySettings } from "../../types/settings";
 
 const FILTERS: LibrarySettings["defaultFilter"][] = ["Playlists", "Albums", "Artists", "Podcasts"];
@@ -18,34 +18,28 @@ export default function LibrarySettingsScreen() {
   const { library } = settings;
 
   return (
-    <SafeAreaView className="flex-1 bg-spotify-base" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-onviza-bg" edges={["top"]}>
       <SettingsHeader title="Library" onBack={() => router.back()} />
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         <SettingSection title="Default view">
-          <View className="flex-row flex-wrap gap-2 p-4">
-            {FILTERS.map((filter) => {
-              const active = library.defaultFilter === filter;
-              return (
-                <Pressable
-                  key={filter}
-                  onPress={() => updateLibrary({ defaultFilter: filter })}
-                  className="rounded-full px-4 py-2"
-                  style={{ backgroundColor: active ? settings.accentColor : "#282828" }}
-                >
-                  <Text className={cn("text-sm font-semibold", active ? "text-black" : "text-spotify-text-primary")}>
-                    {filter}
-                  </Text>
-                </Pressable>
-              );
-            })}
+          <View className="flex-row flex-wrap gap-2.5 p-4">
+            {FILTERS.map((filter) => (
+              <FilterChip
+                key={filter}
+                label={filter}
+                active={library.defaultFilter === filter}
+                onPress={() => updateLibrary({ defaultFilter: filter })}
+                accentColor={settings.accentColor}
+              />
+            ))}
           </View>
         </SettingSection>
 
         <SettingSection title="Sort order">
           {SORT_ORDERS.map((sort, i) => (
             <View key={sort.id}>
-              {i > 0 && <View className="h-px bg-spotify-base" />}
+              {i > 0 && <View className="h-px bg-onviza-border" />}
               <Pressable
                 onPress={() => updateLibrary({ sortOrder: sort.id })}
                 className="flex-row items-center px-4 py-4 active:bg-spotify-highlight/50"

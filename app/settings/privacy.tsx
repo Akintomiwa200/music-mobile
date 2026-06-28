@@ -8,7 +8,7 @@ export default function PrivacySettingsScreen() {
   const { settings, updatePrivacy } = useSettings();
 
   return (
-    <SafeAreaView className="flex-1 bg-spotify-base" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-onviza-bg" edges={["top"]}>
       <SettingsHeader title="Privacy" onBack={() => router.back()} />
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
@@ -21,7 +21,7 @@ export default function PrivacySettingsScreen() {
             onValueChange={(v) => updatePrivacy({ showListeningActivity: v })}
             accentColor={settings.accentColor}
           />
-          <View className="h-px bg-spotify-base" />
+          <View className="h-px bg-onviza-border" />
           <SettingToggle
             icon="lock-closed-outline"
             title="Private session"

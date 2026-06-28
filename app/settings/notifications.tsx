@@ -8,7 +8,7 @@ export default function NotificationsSettingsScreen() {
   const { settings, updateNotifications } = useSettings();
 
   return (
-    <SafeAreaView className="flex-1 bg-spotify-base" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-onviza-bg" edges={["top"]}>
       <SettingsHeader title="Notifications" onBack={() => router.back()} />
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
@@ -31,7 +31,7 @@ export default function NotificationsSettingsScreen() {
             onValueChange={(v) => updateNotifications({ newReleases: v })}
             accentColor={settings.accentColor}
           />
-          <View className="h-px bg-spotify-base" />
+          <View className="h-px bg-onviza-border" />
           <SettingToggle
             title="Artist updates"
             subtitle="News and events from artists"
@@ -39,7 +39,7 @@ export default function NotificationsSettingsScreen() {
             onValueChange={(v) => updateNotifications({ artistUpdates: v })}
             accentColor={settings.accentColor}
           />
-          <View className="h-px bg-spotify-base" />
+          <View className="h-px bg-onviza-border" />
           <SettingToggle
             title="Recommendations"
             subtitle="Personalized picks and mixes"
@@ -47,7 +47,7 @@ export default function NotificationsSettingsScreen() {
             onValueChange={(v) => updateNotifications({ recommendations: v })}
             accentColor={settings.accentColor}
           />
-          <View className="h-px bg-spotify-base" />
+          <View className="h-px bg-onviza-border" />
           <SettingToggle
             title="Friend activity"
             subtitle="When friends listen to something"

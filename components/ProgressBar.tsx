@@ -9,9 +9,18 @@ type Props = {
   className?: string;
   height?: number;
   seekable?: boolean;
+  accentColor?: string;
 };
 
-export function ProgressBar({ progress, duration, onSeek, className, height = 3, seekable = false }: Props) {
+export function ProgressBar({
+  progress,
+  duration,
+  onSeek,
+  className,
+  height = 3,
+  seekable = false,
+  accentColor = "#FFFFFF",
+}: Props) {
   const pct = duration > 0 ? Math.min((progress / duration) * 100, 100) : 0;
   const barWidthRef = useRef(0);
 
@@ -26,41 +35,18 @@ export function ProgressBar({ progress, duration, onSeek, className, height = 3,
   };
 
   const bar = (
-    <View
-      className="flex-1 overflow-hidden rounded-full bg-spotify-highlight"
-      style={{ height }}
-      onLayout={onLayout}
-    >
-      <View className="h-full rounded-full bg-spotify-text-primary" style={{ width: `${pct}%` }} />
+    <View className="flex-1 overflow-hidden rounded-full bg-white/20" style={{ height }} onLayout={onLayout}>
+      <View className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: accentColor }} />
     </View>
   );
 
   if (seekable && onSeek) {
     return (
-      <Pressable
-        onPress={(e) => handleSeek(e.nativeEvent.locationX)}
-        className={cn("w-full flex-row items-center", className)}
-      >
+      <Pressable onPress={(e) => handleSeek(e.nativeEvent.locationX)} className={cn("w-full flex-row items-center", className)}>
         {bar}
       </Pressable>
     );
   }
 
   return <View className={cn("w-full flex-row items-center", className)}>{bar}</View>;
-}
-
-export function PlayerProgressBar({ progress, duration, onSeek }: Props) {
-  const pct = duration > 0 ? Math.min((progress / duration) * 100, 100) : 0;
-
-  return (
-    <View className="w-full">
-      <View className="h-1 w-full overflow-hidden rounded-full bg-spotify-highlight">
-        <View className="h-full rounded-full bg-spotify-text-primary" style={{ width: `${pct}%` }} />
-      </View>
-      <View
-        className="absolute -top-1.5 h-4 w-4 rounded-full bg-spotify-text-primary"
-        style={{ left: `${pct}%`, marginLeft: -8 }}
-      />
-    </View>
-  );
 }

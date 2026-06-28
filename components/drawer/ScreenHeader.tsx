@@ -9,30 +9,36 @@ type Props = {
   left?: "menu" | "back" | "none";
   onBack?: () => void;
   right?: React.ReactNode;
+  large?: boolean;
 };
 
-export function ScreenHeader({ title, subtitle, left = "menu", onBack, right }: Props) {
+export function ScreenHeader({ title, subtitle, left = "menu", onBack, right, large }: Props) {
   return (
-    <View className="flex-row items-center justify-between px-4 pb-2 pt-2">
-      <View className="min-w-0 flex-1 flex-row items-center gap-3">
-        {left === "menu" && <DrawerToggleButton />}
-        {left === "back" && (
-          <Pressable onPress={onBack ?? (() => router.back())} className="p-1">
-            <Ionicons name="chevron-back" size={28} color="#fff" />
-          </Pressable>
-        )}
-        <View className="min-w-0 flex-1">
-          <Text numberOfLines={1} className="text-2xl font-bold text-spotify-text-primary">
-            {title}
-          </Text>
-          {subtitle && (
-            <Text numberOfLines={1} className="text-sm text-spotify-text-secondary">
-              {subtitle}
-            </Text>
+    <View className="px-4 pb-2 pt-3">
+      <View className="flex-row items-center justify-between">
+        <View className="min-w-0 flex-1 flex-row items-center gap-1">
+          {left === "menu" && <DrawerToggleButton />}
+          {left === "back" && (
+            <Pressable onPress={onBack ?? (() => router.back())} className="mr-2 h-10 w-10 items-center justify-center rounded-full active:bg-white/10">
+              <Ionicons name="chevron-back" size={26} color="#fff" />
+            </Pressable>
           )}
+          <View className="min-w-0 flex-1">
+            <Text
+              numberOfLines={1}
+              className={large ? "text-[26px] font-extrabold tracking-tight text-spotify-text-primary" : "text-xl font-bold text-spotify-text-primary"}
+            >
+              {title}
+            </Text>
+            {subtitle && (
+              <Text numberOfLines={1} className="mt-0.5 text-sm text-spotify-text-secondary">
+                {subtitle}
+              </Text>
+            )}
+          </View>
         </View>
+        {right && <View className="flex-row items-center gap-1">{right}</View>}
       </View>
-      {right && <View className="flex-row items-center gap-4">{right}</View>}
     </View>
   );
 }

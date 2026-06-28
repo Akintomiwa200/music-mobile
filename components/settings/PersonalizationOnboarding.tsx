@@ -21,7 +21,7 @@ export function PersonalizationOnboarding({ visible, onComplete }: Props) {
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="fullScreen">
-      <SafeAreaView className="flex-1 bg-spotify-base">
+      <SafeAreaView className="flex-1 bg-onviza-bg">
         <View className="flex-row items-center justify-between px-4 py-3">
           <Text className="text-2xl font-bold text-spotify-text-primary">Make it yours</Text>
           <Pressable onPress={finish} className="px-3 py-1">
@@ -44,7 +44,7 @@ export function PersonalizationOnboarding({ visible, onComplete }: Props) {
                 <Pressable
                   key={genre}
                   onPress={() => toggleGenre(genre)}
-                  className={cn("rounded-full px-4 py-2", active ? "bg-spotify-green" : "bg-spotify-highlight")}
+                  className={cn("rounded-full px-4 py-2", active ? "" : "bg-onviza-elevated")}
                   style={active ? { backgroundColor: settings.accentColor } : undefined}
                 >
                   <Text className={cn("text-sm font-semibold", active ? "text-black" : "text-white")}>{genre}</Text>
@@ -83,12 +83,12 @@ export function PersonalizationOnboarding({ visible, onComplete }: Props) {
             {ACCENT_COLORS.map((color) => (
               <Pressable
                 key={color.id}
-                onPress={() => updateSettings({ accentColor: color.value })}
+                onPress={() => updateSettings({ accentColor: color.hex })}
                 className={cn(
                   "h-12 w-12 rounded-full",
-                  settings.accentColor === color.value && "border-2 border-white"
+                  settings.accentColor === color.hex && "border-2 border-white"
                 )}
-                style={{ backgroundColor: color.value }}
+                style={{ backgroundColor: color.hex }}
               />
             ))}
           </View>

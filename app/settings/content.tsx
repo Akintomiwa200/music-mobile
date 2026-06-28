@@ -8,7 +8,7 @@ export default function ContentSettingsScreen() {
   const { settings, updateSettings } = useSettings();
 
   return (
-    <SafeAreaView className="flex-1 bg-spotify-base" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-onviza-bg" edges={["top"]}>
       <SettingsHeader title="Content" onBack={() => router.back()} />
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>

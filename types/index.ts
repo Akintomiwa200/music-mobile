@@ -4,6 +4,8 @@ export type Artist = {
   image: string;
   monthlyListeners?: string;
   verified?: boolean;
+  followers?: number;
+  genres?: string[];
 };
 
 export type Song = {
@@ -16,6 +18,8 @@ export type Song = {
   duration: number;
   image: string;
   explicit?: boolean;
+  previewUrl?: string | null;
+  uri?: string;
 };
 
 export type Album = {
@@ -26,6 +30,7 @@ export type Album = {
   year: number;
   image: string;
   songs: Song[];
+  totalTracks?: number;
 };
 
 export type Playlist = {
@@ -53,6 +58,7 @@ export type LibraryItem = {
   image: string;
   type: "playlist" | "album" | "artist" | "podcast";
   pinned?: boolean;
+  special?: "liked-songs" | "your-episodes";
 };
 
 export type PlayerState = {

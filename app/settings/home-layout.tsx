@@ -17,14 +17,14 @@ export default function HomeLayoutScreen() {
   const { settings, updateHomeSections } = useSettings();
 
   return (
-    <SafeAreaView className="flex-1 bg-spotify-base" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-onviza-bg" edges={["top"]}>
       <SettingsHeader title="Home layout" onBack={() => router.back()} />
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         <SettingSection title="Show on home">
           {SECTIONS.map((section, i) => (
             <View key={section.key}>
-              {i > 0 && <View className="h-px bg-spotify-base" />}
+              {i > 0 && <View className="h-px bg-onviza-border" />}
               <SettingToggle
                 title={section.title}
                 subtitle={section.subtitle}

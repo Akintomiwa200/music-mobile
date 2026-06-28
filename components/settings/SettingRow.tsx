@@ -31,7 +31,7 @@ export function SettingRow({
       className="flex-row items-center px-4 py-3.5 active:bg-spotify-highlight/50"
     >
       {icon && (
-        <View className="mr-4 h-9 w-9 items-center justify-center rounded-full bg-spotify-highlight">
+        <View className="mr-4 h-9 w-9 items-center justify-center rounded-full bg-onviza-elevated">
           <Ionicons name={icon} size={20} color={iconColor} />
         </View>
       )}
@@ -56,12 +56,12 @@ export function SettingToggle({
   subtitle,
   value,
   onValueChange,
-  accentColor = "#1DB954",
+  accentColor = "#9333EA",
 }: BaseProps & { value: boolean; onValueChange: (v: boolean) => void }) {
   return (
     <View className="flex-row items-center px-4 py-3.5">
       {icon && (
-        <View className="mr-4 h-9 w-9 items-center justify-center rounded-full bg-spotify-highlight">
+        <View className="mr-4 h-9 w-9 items-center justify-center rounded-full bg-onviza-elevated">
           <Ionicons name={icon} size={20} color={iconColor} />
         </View>
       )}
@@ -87,7 +87,7 @@ export function SettingSection({ title, children }: { title?: string; children: 
           {title}
         </Text>
       )}
-      <View className="overflow-hidden rounded-xl bg-spotify-elevated mx-4">{children}</View>
+      <View className="overflow-hidden rounded-2xl bg-onviza-card mx-4">{children}</View>
     </View>
   );
 }

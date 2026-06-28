@@ -17,7 +17,7 @@ export default function PlaybackSettingsScreen() {
   const { playback } = settings;
 
   return (
-    <SafeAreaView className="flex-1 bg-spotify-base" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-onviza-bg" edges={["top"]}>
       <SettingsHeader title="Playback" onBack={() => router.back()} />
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
@@ -30,7 +30,7 @@ export default function PlaybackSettingsScreen() {
             onValueChange={(v) => updatePlayback({ autoplay: v })}
             accentColor={settings.accentColor}
           />
-          <View className="h-px bg-spotify-base" />
+          <View className="h-px bg-onviza-border" />
           <SettingToggle
             icon="git-merge-outline"
             title="Crossfade"
@@ -39,7 +39,7 @@ export default function PlaybackSettingsScreen() {
             onValueChange={(v) => updatePlayback({ crossfade: v })}
             accentColor={settings.accentColor}
           />
-          <View className="h-px bg-spotify-base" />
+          <View className="h-px bg-onviza-border" />
           <SettingToggle
             icon="volume-high-outline"
             title="Normalize volume"
@@ -48,7 +48,7 @@ export default function PlaybackSettingsScreen() {
             onValueChange={(v) => updatePlayback({ normalizeVolume: v })}
             accentColor={settings.accentColor}
           />
-          <View className="h-px bg-spotify-base" />
+          <View className="h-px bg-onviza-border" />
           <SettingToggle
             icon="infinite-outline"
             title="Gapless playback"
@@ -68,7 +68,7 @@ export default function PlaybackSettingsScreen() {
                   onPress={() => updatePlayback({ crossfadeDuration: sec })}
                   className={cn(
                     "rounded-full px-5 py-2.5",
-                    playback.crossfadeDuration === sec ? "bg-spotify-green" : "bg-spotify-highlight"
+                    playback.crossfadeDuration === sec ? "" : "bg-onviza-elevated"
                   )}
                   style={playback.crossfadeDuration === sec ? { backgroundColor: settings.accentColor } : undefined}
                 >
@@ -90,7 +90,7 @@ export default function PlaybackSettingsScreen() {
             onValueChange={(v) => updatePlayback({ showLyrics: v })}
             accentColor={settings.accentColor}
           />
-          <View className="h-px bg-spotify-base" />
+          <View className="h-px bg-onviza-border" />
           <SettingToggle
             icon="sync-outline"
             title="Synced lyrics"
@@ -104,7 +104,7 @@ export default function PlaybackSettingsScreen() {
         <SettingSection title="Streaming quality">
           {QUALITIES.map((q, i) => (
             <View key={q.id}>
-              {i > 0 && <View className="h-px bg-spotify-base" />}
+              {i > 0 && <View className="h-px bg-onviza-border" />}
               <Pressable
                 onPress={() => updatePlayback({ streamingQuality: q.id })}
                 className="flex-row items-center px-4 py-4 active:bg-spotify-highlight/50"

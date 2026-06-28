@@ -20,7 +20,7 @@ export default function PersonalizationScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-spotify-base" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-onviza-bg" edges={["top"]}>
       <SettingsHeader title="Personalization" onBack={() => router.back()} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
@@ -38,7 +38,7 @@ export default function PersonalizationScreen() {
               onBlur={saveName}
               placeholder="Your name"
               placeholderTextColor="#727272"
-              className="rounded-lg bg-spotify-highlight px-4 py-3 text-base text-spotify-text-primary"
+              className="rounded-xl bg-onviza-elevated px-4 py-3 text-base text-white"
             />
           </View>
         </SettingSection>
@@ -50,14 +50,14 @@ export default function PersonalizationScreen() {
             subtitle="Toggle sections on your home feed"
             onPress={() => router.push("/settings/home-layout")}
           />
-          <View className="h-px bg-spotify-base" />
+          <View className="h-px bg-onviza-border" />
           <SettingRow
             icon="color-wand-outline"
             title="Appearance"
             subtitle="Tab labels, library density, language"
             onPress={() => router.push("/settings/appearance")}
           />
-          <View className="h-px bg-spotify-base" />
+          <View className="h-px bg-onviza-border" />
           <SettingRow
             icon="library-outline"
             title="Library defaults"
@@ -77,7 +77,7 @@ export default function PersonalizationScreen() {
                 <Pressable
                   key={genre}
                   onPress={() => toggleGenre(genre)}
-                  className={cn("rounded-full px-4 py-2", active ? "bg-spotify-green" : "bg-spotify-highlight")}
+                  className={cn("rounded-full px-4 py-2", active ? "" : "bg-onviza-elevated")}
                   style={active ? { backgroundColor: settings.accentColor } : undefined}
                 >
                   <Text className={cn("text-sm font-semibold", active ? "text-black" : "text-spotify-text-primary")}>
@@ -114,13 +114,13 @@ export default function PersonalizationScreen() {
         <SettingSection title="Accent color">
           <View className="flex-row flex-wrap gap-3 p-4">
             {ACCENT_COLORS.map((color) => {
-              const active = settings.accentColor === color.value;
+              const active = settings.accentColor === color.hex;
               return (
                 <Pressable
                   key={color.id}
-                  onPress={() => updateSettings({ accentColor: color.value })}
+                  onPress={() => updateSettings({ accentColor: color.hex })}
                   className={cn("h-12 w-12 rounded-full", active && "border-2 border-white")}
-                  style={{ backgroundColor: color.value }}
+                  style={{ backgroundColor: color.hex }}
                   accessibilityLabel={color.label}
                 />
               );

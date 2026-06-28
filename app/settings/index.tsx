@@ -12,14 +12,14 @@ export default function SettingsScreen() {
   const moodLabel = settings.defaultMood ? MOOD_SEEDS[settings.defaultMood]?.label : "None";
 
   return (
-    <SafeAreaView className="flex-1 bg-spotify-base" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-onviza-bg" edges={["top"]}>
       <SettingsHeader title="Settings" onBack={() => router.back()} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         {/* Profile card */}
         <Pressable
           onPress={() => router.push("/settings/profile")}
-          className="mx-4 mb-6 flex-row items-center rounded-xl bg-spotify-elevated p-4 active:opacity-90"
+          className="mx-4 mb-6 flex-row items-center rounded-2xl bg-onviza-card p-4 active:opacity-90"
         >
           <Image source={{ uri: settings.avatarUri }} className="h-16 w-16 rounded-full" contentFit="cover" />
           <View className="ml-4 flex-1">
@@ -36,28 +36,28 @@ export default function SettingsScreen() {
             subtitle={settings.displayName}
             onPress={() => router.push("/settings/profile")}
           />
-          <View className="h-px bg-spotify-base" />
+          <View className="h-px bg-onviza-border" />
           <SettingRow
             icon="color-palette-outline"
             title="Taste profile"
             subtitle={`${settings.favoriteGenres.length} genres · Mood: ${moodLabel}`}
             onPress={() => router.push("/settings/personalization")}
           />
-          <View className="h-px bg-spotify-base" />
+          <View className="h-px bg-onviza-border" />
           <SettingRow
             icon="home-outline"
             title="Home layout"
             subtitle="Choose what appears on your home feed"
             onPress={() => router.push("/settings/home-layout")}
           />
-          <View className="h-px bg-spotify-base" />
+          <View className="h-px bg-onviza-border" />
           <SettingRow
             icon="eye-outline"
             title="Appearance"
             subtitle={`${settings.appearance.canvasStyle} · ${settings.appearance.language.toUpperCase()}`}
             onPress={() => router.push("/settings/appearance")}
           />
-          <View className="h-px bg-spotify-base" />
+          <View className="h-px bg-onviza-border" />
           <SettingRow
             icon="library-outline"
             title="Library"
@@ -73,7 +73,7 @@ export default function SettingsScreen() {
             subtitle={`Quality: ${settings.playback.streamingQuality}`}
             onPress={() => router.push("/settings/playback")}
           />
-          <View className="h-px bg-spotify-base" />
+          <View className="h-px bg-onviza-border" />
           <SettingRow
             icon="mic-outline"
             title="Lyrics"
@@ -89,7 +89,7 @@ export default function SettingsScreen() {
             subtitle={settings.privacy.privateSession ? "Private session on" : "Public listening"}
             onPress={() => router.push("/settings/privacy")}
           />
-          <View className="h-px bg-spotify-base" />
+          <View className="h-px bg-onviza-border" />
           <SettingRow
             icon="notifications-outline"
             title="Notifications"
@@ -105,7 +105,7 @@ export default function SettingsScreen() {
             value={settings.explicitContent ? "Allowed" : "Blocked"}
             onPress={() => router.push("/settings/content")}
           />
-          <View className="h-px bg-spotify-base" />
+          <View className="h-px bg-onviza-border" />
           <SettingRow
             icon="cellular-outline"
             title="Data saver"
@@ -116,13 +116,13 @@ export default function SettingsScreen() {
 
         <SettingSection title="Account">
           <SettingRow
-            icon="logo-spotify"
-            iconColor="#1DB954"
-            title="Connect Spotify"
+            icon="musical-notes-outline"
+            iconColor="#9333EA"
+            title="Connect streaming"
             subtitle="Link your real Spotify account"
             onPress={() => router.push("/settings/account")}
           />
-          <View className="h-px bg-spotify-base" />
+          <View className="h-px bg-onviza-border" />
           <SettingRow
             icon="refresh-outline"
             title="Reset all settings"

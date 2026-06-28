@@ -12,7 +12,7 @@ export const artists: Artist[] = [
   { id: "a6", name: "Post Malone", image: img("post"), monthlyListeners: "68.7M", verified: true },
 ];
 
-const songs: Song[] = [
+export const songs: Song[] = [
   { id: "s1", title: "Blinding Lights", artist: "The Weeknd", artistId: "a1", album: "After Hours", albumId: "al1", duration: 200, image: img("bl1"), explicit: false },
   { id: "s2", title: "Save Your Tears", artist: "The Weeknd", artistId: "a1", album: "After Hours", albumId: "al1", duration: 215, image: img("bl1") },
   { id: "s3", title: "Starboy", artist: "The Weeknd", artistId: "a1", album: "Starboy", albumId: "al2", duration: 230, image: img("starboy"), explicit: true },
@@ -146,7 +146,33 @@ export const searchCategories: SearchCategory[] = [
 ];
 
 export const libraryItems: LibraryItem[] = [
-  { id: "p7", title: "Liked Songs", subtitle: "Playlist • 127 songs", image: img("liked"), type: "playlist", pinned: true },
+  {
+    id: "p7",
+    title: "Liked Songs",
+    subtitle: "Playlist • 165 songs",
+    image: "",
+    type: "playlist",
+    pinned: true,
+    special: "liked-songs",
+  },
+  {
+    id: "episodes",
+    title: "Your Episodes",
+    subtitle: "Saved • 3 episodes",
+    image: "",
+    type: "podcast",
+    pinned: true,
+    special: "your-episodes",
+  },
+  { id: "a4", title: "Gene Evaro Jr.", subtitle: "Artist", image: img("gene"), type: "artist" },
+  {
+    id: "pod1",
+    title: "Latina to Latina",
+    subtitle: "Podcast • Latina to Latina LLC",
+    image: img("latina"),
+    type: "podcast",
+  },
+  { id: "al13", title: "Impossible Falcon", subtitle: "Album • Wandell", image: img("falcon"), type: "album" },
   { id: "p1", title: "Today's Top Hits", subtitle: "Playlist • Spotify", image: img("tth"), type: "playlist" },
   { id: "p3", title: "Discover Weekly", subtitle: "Playlist • Spotify", image: img("discover"), type: "playlist" },
   { id: "al1", title: "After Hours", subtitle: "Album • The Weeknd", image: img("bl1"), type: "album" },
@@ -156,6 +182,14 @@ export const libraryItems: LibraryItem[] = [
   { id: "p2", title: "RapCaviar", subtitle: "Playlist • Spotify", image: img("rap"), type: "playlist" },
   { id: "al10", title: "Un Verano Sin Ti", subtitle: "Album • Bad Bunny", image: img("titi"), type: "album" },
   { id: "a3", title: "Taylor Swift", subtitle: "Artist", image: img("taylor"), type: "artist" },
+];
+
+export const forYouItems = [
+  { id: "p5", title: "Sleepy Drive", image: img("chill", 280, 280), type: "playlist" as const },
+  { id: "p3", title: "Mood Swing", image: img("discover", 280, 280), type: "playlist" as const },
+  { id: "p2", title: "Go Wild", image: img("rap", 280, 280), type: "playlist" as const },
+  { id: "p4", title: "Midnight Rain", image: img("radar", 280, 280), type: "playlist" as const },
+  { id: "al1", title: "After Hours", image: img("bl1", 280, 280), type: "album" as const },
 ];
 
 export const recentlyPlayed = [
@@ -198,5 +232,3 @@ export function searchAll(query: string) {
     artists: artists.filter((a) => a.name.toLowerCase().includes(q)),
   };
 }
-
-export { songs };
